@@ -6,35 +6,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         html {
-            font-size: 110%; /* Increase base font size by 10% */
+            font-size: 110%; 
         }
         body { 
             font-family: 'KaiTi', 'SimSun', sans-serif; 
-            background-color: #f0f9ff; /* 如果图片加载失败，会显示这个浅蓝色 */
-
-            /* --- 请在这里替换您的背景图片 --- */
-            /* 将 'path/to/your/cute-image.png' 替换成您图片的实际路径或网址。
-               例如: background-image: url('images/my_background.jpg'); 
-               或者: background-image: url('https://example.com/background.png'); 
-            */
-            background-image: url('https://images.pexels.com/photos/772478/pexels-photo-772478.jpeg'); /* <-- 这是一个占位符，请替换它 */
-            
-            /* --- 您可能需要调整这些背景设置，让图片更好看 --- */
-            background-size: cover;       /* cover = 铺满整个屏幕 (可能会裁剪图片边缘) */
-                                          /* contain = 完整显示图片 (屏幕边缘可能会留白) */
-                                          /* 100% 100% = 拉伸图片铺满 (可能会变形) */
-            background-repeat: no-repeat; /* no-repeat = 图片不重复 */
-                                          /* repeat = 图片重复铺满 */
-            background-position: center center; /* 图片居中显示 */
-            background-attachment: fixed; /* fixed = 背景图片固定，滚动页面时背景不动 */
+            background-color: #f0f9ff; /* Fallback color */
+            /* Updated background image URL */
+            background-image: url('https://images.pexels.com/photos/772478/pexels-photo-772478.jpeg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
         }
         .option-card { border: 2px solid #eee; transition: transform 0.2s; }
         .option-card:hover { transform: scale(1.05); }
         .option-card.selected { border-color: #34D399; background-color: #A7F3D0; }
         .bar { background-color: #60A5FA; transition: height 0.5s ease-out; }
         .dot { width: 1.25rem; height: 1.25rem; background-color: #FBBF24; border-radius: 50%; margin: 0.3125rem; cursor: pointer; display: inline-block; }
-        .modal { display: none; /* Hidden by default */ }
-        .modal.active { display: flex; /* Show when active */ }
+        .modal { display: none; }
+        .modal.active { display: flex; }
         .photo-booth video, .photo-booth canvas, .photo-booth img { max-width: 100%; border-radius: 8px; }
         .btn {
             padding: 0.625rem 1.25rem; 
@@ -60,13 +50,22 @@
             margin-top: 0.25rem; 
             width: calc(100% - 1.125rem); 
         }
+        input[type="file"] { width: auto; } /* Adjust file input width */
         label { 
             font-size: 0.9rem; 
             color: #374151; 
         }
-        /* Make sure the main content boxes are slightly transparent so background can peek through, or keep them white */
         #page1, #page2 {
-            background-color: rgba(255, 255, 255, 0.9); /* White with 90% opacity */
+            background-color: rgba(255, 255, 255, 0.92); 
+        }
+        .added-option-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            background-color: #f9fafb;
         }
     </style>
 </head>
@@ -74,18 +73,35 @@
 
     <div id="page1" class="w-full max-w-3xl bg-white p-6 rounded-lg shadow-xl">
         <div id="teacherSetup" class="mb-8">
-            <h2 class="text-2xl font-semibold text-center text-blue-600 mb-4">老师设置选项</h2>
-            <div id="optionsContainer" class="space-y-4 mb-4">
+            <h2 class="text-2xl font-semibold text-center text-blue-600 mb-6">老师设置选项</h2>
+
+            <div class="new-option-input-area p-4 border border-gray-300 rounded-lg bg-white/80 mb-6 space-y-4 shadow">
+                <div>
+                    <label for="newOptionText" class="block text-sm font-medium text-gray-700">输入选项文字：</label>
+                    <input type="text" id="newOptionText" placeholder="例如：小猫" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
-            <button id="addOptionBtn" class="btn btn-primary w-full sm:w-auto">添加新选项 (最多8个)</button>
+                <div class="flex flex-col sm:flex-row sm:items-end sm:space-x-4">
+                    <div class="flex-grow">
+                        <label for="newOptionImageFile" class="block text-sm font-medium text-gray-700">选择图片 (可选)：</label>
+                        <input type="file" id="newOptionImageFile" accept="image/*" class="mt-1 block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                    <img id="newOptionImagePreview" src="https://placehold.co/80x80/E2E8F0/94A3B8?text=预览" alt="图片预览" class="mt-2 sm:mt-0 max-h-20 h-20 w-20 object-contain rounded border bg-gray-50"/>
+                </div>
+                <button id="addCurrentOptionBtn" class="btn btn-primary w-full">添加选项</button>
+            </div>
+
+            <h3 class="text-lg font-medium text-gray-800 mb-2">已添加的选项 ( <span id="currentOptionCountText">0</span> / <span id="maxOptionCountText">8</span> ):</h3>
+            <div id="addedOptionsDisplayArea" class="space-y-2 mb-4 max-h-48 overflow-y-auto p-3 border rounded-md bg-gray-50 shadow-inner">
+                <p class="text-gray-500 text-center italic">暂无已添加选项</p>
+            </div>
         </div>
 
         <div id="studentVoting" class="mb-8">
             <h2 class="text-2xl font-semibold text-center text-green-600 mb-4">小朋友投票啦！</h2>
             
-            <div class="photo-booth text-center mb-6 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-white/70"> <p class="text-gray-700 mb-2">先拍一张可爱的头像吧！</p>
-                <video id="webcam" autoplay playsinline class="mx-auto mb-2 bg-gray-200"></video>
-                <canvas id="photoCanvas" class="hidden"></canvas>
+            <div class="photo-booth text-center mb-6 p-4 border-2 border-dashed border-gray-300 rounded-lg bg-white/70">
+                <p class="text-gray-700 mb-2">先拍一张可爱的头像吧！</p>
+                <video id="webcam" autoplay playsinline class="mx-auto mb-2 bg-gray-200 hidden"></video> <canvas id="photoCanvas" class="hidden"></canvas>
                 <img id="capturedPhotoPreview" src="https://placehold.co/200x150/E2E8F0/94A3B8?text=我的头像" alt="我的头像" class="mx-auto mb-2 rounded-lg shadow"/>
                 <div class="space-x-2">
                     <button id="startWebcamBtn" class="btn btn-secondary">打开摄像头</button>
@@ -97,7 +113,8 @@
 
             <h3 class="text-xl font-medium text-center text-gray-700 mb-3">请选择你喜欢的：</h3>
             <div id="votingOptionsDisplay" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                </div>
+                <p class="col-span-full text-center text-gray-500">老师还没有设置好选项哦！</p>
+            </div>
             <p id="voteMessage" class="text-center mt-4 font-semibold"></p>
         </div>
 
@@ -118,7 +135,7 @@
             <img id="modalOptionImage" src="" alt="选项图片" class="mx-auto mb-3 max-h-40 rounded-md hidden"/>
             <p id="modalVoteCount" class="text-lg mb-3 text-center"></p>
             <div id="modalDotsContainer" class="flex flex-wrap justify-center mb-4">
-                </div>
+            </div>
             <div id="modalVoterImageContainer" class="text-center hidden">
                 <img id="modalVoterImage" src="" alt="投票者头像" class="mx-auto max-h-48 rounded-lg shadow-md"/>
                 <button id="backToDotsBtn" class="btn btn-secondary mt-3">返回看圆点</button>
@@ -132,9 +149,15 @@
     const page1 = document.getElementById('page1');
     const page2 = document.getElementById('page2');
     
-    // Teacher Setup
-    const optionsContainer = document.getElementById('optionsContainer');
-    const addOptionBtn = document.getElementById('addOptionBtn');
+    // Teacher Setup - New Structure
+    const newOptionText = document.getElementById('newOptionText');
+    const newOptionImageFile = document.getElementById('newOptionImageFile');
+    const newOptionImagePreview = document.getElementById('newOptionImagePreview');
+    const addCurrentOptionBtn = document.getElementById('addCurrentOptionBtn');
+    const addedOptionsDisplayArea = document.getElementById('addedOptionsDisplayArea');
+    const currentOptionCountText = document.getElementById('currentOptionCountText');
+    const maxOptionCountText = document.getElementById('maxOptionCountText');
+
 
     // Student Voting
     const webcam = document.getElementById('webcam');
@@ -170,161 +193,185 @@
     let currentStudentImage = null;
     let webcamStream = null;
     const MAX_OPTIONS = 8;
+    let tempImageForNewOption = null; 
 
     // --- Initialization ---
     function init() {
-        addInitialOptionInputs();
-        updateAddOptionButtonState();
         page1.classList.remove('hidden');
         page2.classList.add('hidden');
         voteDetailsModal.classList.remove('active');
-    }
-
-    // --- Teacher Setup Logic ---
-    function addInitialOptionInputs() {
-        optionsContainer.innerHTML = ''; // Clear existing
-        if (optionsData.length === 0) { // Only add if empty, otherwise preserve existing
-            addOptionInput();
-            addOptionInput();
-        } else {
-            optionsData.forEach(opt => createOptionInputDOM(opt.id, opt.text, opt.imageSrc));
-        }
-    }
-    
-    function createOptionInputDOM(id, textValue = '', imageSrcValue = null) {
-        const optionDiv = document.createElement('div');
-        optionDiv.className = 'option-input-group p-3 border border-gray-200 rounded-lg bg-white/50';
-        optionDiv.dataset.id = id;
-
-        const textLabel = document.createElement('label');
-        textLabel.textContent = `选项 ${optionsContainer.children.length + 1} 文字：`;
-        const textInput = document.createElement('input');
-        textInput.type = 'text';
-        textInput.placeholder = '例如：苹果';
-        textInput.value = textValue;
-        textInput.oninput = (e) => updateOptionData(id, 'text', e.target.value);
-        
-        const imageLabel = document.createElement('label');
-        imageLabel.textContent = '选项图片 (可选)：';
-        imageLabel.className = 'mt-2 block';
-        const imageInput = document.createElement('input');
-        imageInput.type = 'file';
-        imageInput.accept = 'image/*';
-        imageInput.onchange = (e) => handleImageUpload(e, id);
-
-        const imgPreview = document.createElement('img');
-        imgPreview.className = 'mt-2 max-h-20 rounded'; 
-        if (imageSrcValue) {
-            imgPreview.src = imageSrcValue;
-        } else {
-            imgPreview.src = "https://placehold.co/100x100/E2E8F0/94A3B8?text=图片";
-            imgPreview.alt = "图片预览";
-        }
-        
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = '删除此选项';
-        removeBtn.className = 'btn btn-red btn-sm mt-2 text-xs px-2 py-1'; 
-        removeBtn.onclick = () => removeOptionInput(id);
-
-        optionDiv.appendChild(textLabel);
-        optionDiv.appendChild(textInput);
-        optionDiv.appendChild(imageLabel);
-        optionDiv.appendChild(imageInput);
-        optionDiv.appendChild(imgPreview);
-        optionDiv.appendChild(removeBtn);
-        optionsContainer.appendChild(optionDiv);
-        updateOptionLabels();
-    }
-
-    function addOptionInput() {
-        if (optionsContainer.children.length >= MAX_OPTIONS) {
-            showCustomMessage(`最多只能添加 ${MAX_OPTIONS} 个选项哦！`, 'warning');
-            return;
-        }
-        const newId = Date.now().toString();
-        optionsData.push({ id: newId, text: '', imageSrc: null, votes: 0, voters: [] });
-        createOptionInputDOM(newId);
-        updateAddOptionButtonState();
-    }
-    
-    function removeOptionInput(idToRemove) {
-        if (optionsData.length <= 1 && optionsContainer.children.length <=1) {
-             showCustomMessage('至少需要保留一个选项哦！', 'warning');
-             return;
-        }
-        optionsData = optionsData.filter(opt => opt.id !== idToRemove);
-        const divToRemove = optionsContainer.querySelector(`[data-id="${idToRemove}"]`);
-        if (divToRemove) {
-            optionsContainer.removeChild(divToRemove);
-        }
-        updateOptionLabels();
-        updateAddOptionButtonState();
+        maxOptionCountText.textContent = MAX_OPTIONS;
+        updateAddCurrentOptionButtonState();
+        renderAddedOptionsPreview(); 
         renderVotingOptionsDisplay(); 
+        webcam.classList.add('hidden');
     }
 
-    function updateOptionLabels() {
-        Array.from(optionsContainer.children).forEach((div, index) => {
-            div.querySelector('label').textContent = `选项 ${index + 1} 文字：`;
-        });
-    }
-
-    function updateOptionData(id, key, value) {
-        const option = optionsData.find(opt => opt.id === id);
-        if (option) {
-            option[key] = value;
-        }
-        renderVotingOptionsDisplay(); 
-    }
-
-    function handleImageUpload(event, id) {
+    // --- Teacher Setup Logic (New Structure) ---
+    newOptionImageFile.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                updateOptionData(id, 'imageSrc', e.target.result);
-                const imgPreview = event.target.parentElement.querySelector('img');
-                if (imgPreview) {
-                    imgPreview.src = e.target.result;
-                }
-                renderVotingOptionsDisplay(); 
+                newOptionImagePreview.src = e.target.result;
+                tempImageForNewOption = e.target.result; 
             }
             reader.readAsDataURL(file);
+        } else {
+            newOptionImagePreview.src = "https://placehold.co/80x80/E2E8F0/94A3B8?text=预览";
+            tempImageForNewOption = null;
         }
+    });
+
+    addCurrentOptionBtn.addEventListener('click', () => {
+        const text = newOptionText.value.trim();
+        if (!text) {
+            showCustomMessage("选项文字不能为空哦！", "warning");
+            newOptionText.focus();
+            return;
+        }
+        if (optionsData.length >= MAX_OPTIONS) {
+            showCustomMessage(`最多只能添加 ${MAX_OPTIONS} 个选项哦！`, "warning");
+            return;
+        }
+
+        const newId = Date.now().toString();
+        optionsData.push({
+            id: newId,
+            text: text,
+            imageSrc: tempImageForNewOption, 
+            votes: 0,
+            voters: []
+        });
+
+        newOptionText.value = '';
+        newOptionImageFile.value = ''; 
+        newOptionImagePreview.src = "https://placehold.co/80x80/E2E8F0/94A3B8?text=预览";
+        tempImageForNewOption = null;
+
+        renderAddedOptionsPreview();
+        renderVotingOptionsDisplay();
+        updateAddCurrentOptionButtonState();
+        newOptionText.focus();
+    });
+
+    function renderAddedOptionsPreview() {
+        addedOptionsDisplayArea.innerHTML = ''; 
+        if (optionsData.length === 0) {
+            addedOptionsDisplayArea.innerHTML = '<p class="text-gray-500 text-center italic">暂无已添加选项</p>';
+        } else {
+            optionsData.forEach(option => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'added-option-item';
+                
+                const optionTextSpan = document.createElement('span');
+                optionTextSpan.textContent = option.text.length > 20 ? option.text.substring(0, 18) + '...' : option.text;
+                optionTextSpan.title = option.text;
+                optionTextSpan.className = 'text-sm text-gray-700 flex-grow';
+
+                if(option.imageSrc){
+                    const optionImgPreview = document.createElement('img');
+                    optionImgPreview.src = option.imageSrc;
+                    optionImgPreview.alt = '预览';
+                    optionImgPreview.className = 'w-8 h-8 object-contain rounded mr-2 border';
+                    itemDiv.appendChild(optionImgPreview);
+                }
+
+                itemDiv.appendChild(optionTextSpan);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '删除';
+                removeBtn.className = 'btn btn-red btn-sm text-xs px-2 py-1';
+                removeBtn.onclick = () => removeAddedOption(option.id);
+                
+                itemDiv.appendChild(removeBtn);
+                addedOptionsDisplayArea.appendChild(itemDiv);
+            });
+        }
+        currentOptionCountText.textContent = optionsData.length;
     }
 
-    function updateAddOptionButtonState() {
-        addOptionBtn.disabled = optionsContainer.children.length >= MAX_OPTIONS;
-        addOptionBtn.textContent = optionsContainer.children.length >= MAX_OPTIONS ? `已达上限 (${MAX_OPTIONS}个)` : `添加新选项 (最多${MAX_OPTIONS}个)`;
+    function removeAddedOption(idToRemove) {
+        optionsData = optionsData.filter(opt => opt.id !== idToRemove);
+        renderAddedOptionsPreview();
+        renderVotingOptionsDisplay();
+        updateAddCurrentOptionButtonState();
+    }
+
+    function updateAddCurrentOptionButtonState() {
+        addCurrentOptionBtn.disabled = optionsData.length >= MAX_OPTIONS;
+        if (optionsData.length >= MAX_OPTIONS) {
+            addCurrentOptionBtn.textContent = `已达上限 (${MAX_OPTIONS}个)`;
+        } else {
+            addCurrentOptionBtn.textContent = '添加选项';
+        }
     }
 
     // --- Student Webcam Logic ---
     async function startWebcamFlow() {
+        console.log("startWebcamFlow called"); // DEBUG
         if (webcamStream) { 
             webcamStream.getTracks().forEach(track => track.stop());
+            webcamStream = null; 
         }
         try {
+            console.log("Attempting to get user media..."); // DEBUG
             webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            console.log("User media obtained:", webcamStream); // DEBUG
             webcam.srcObject = webcamStream;
-            webcam.classList.remove('hidden');
-            capturedPhotoPreview.classList.add('hidden'); 
-            capturePhotoBtn.disabled = false;
-            startWebcamBtn.classList.add('hidden');
-            retakePhotoBtn.classList.remove('hidden');
-            webcamError.textContent = '';
+            webcam.onloadedmetadata = () => {
+                console.log("Webcam metadata loaded."); // DEBUG
+                webcam.play().catch(playError => { 
+                     console.error("摄像头播放错误:", playError);
+                     webcamError.textContent = `摄像头可以访问，但播放失败: ${playError.name}. 请尝试刷新页面。`;
+                });
+                webcam.classList.remove('hidden'); 
+                capturedPhotoPreview.classList.add('hidden'); 
+                capturePhotoBtn.disabled = false;
+                startWebcamBtn.classList.add('hidden');
+                retakePhotoBtn.classList.remove('hidden');
+                webcamError.textContent = '';
+            };
+            webcam.onerror = (e) => { 
+                console.error("摄像头元素错误:", e);
+                webcamError.textContent = "摄像头发生未知错误。";
+                capturePhotoBtn.disabled = true;
+                startWebcamBtn.classList.remove('hidden');
+                retakePhotoBtn.classList.add('hidden');
+                capturedPhotoPreview.classList.remove('hidden'); // Show placeholder if video element errors
+            };
+
         } catch (err) {
-            console.error("摄像头错误:", err);
-            webcamError.textContent = "哎呀，打不开摄像头哦！请检查权限。";
+            console.error("摄像头访问错误:", err);
+            let message = "哎呀，打不开摄像头哦！请检查权限。";
+            if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+                message = "没有找到摄像头设备。";
+            } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                message = "您没有允许浏览器使用摄像头。请检查浏览器权限设置。";
+            } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+                message = "摄像头可能正在被其他应用使用，或者硬件有问题。";
+            } else {
+                message = `无法访问摄像头 (${err.name})。请检查连接和权限。`;
+            }
+            webcamError.textContent = message;
             capturePhotoBtn.disabled = true;
             startWebcamBtn.classList.remove('hidden');
             retakePhotoBtn.classList.add('hidden');
+            webcam.classList.add('hidden'); 
+            capturedPhotoPreview.classList.remove('hidden'); // Show placeholder if getUserMedia fails
         }
     }
 
     function captureStudentPhoto() {
         if (!webcamStream || !webcamStream.active) {
-            webcamError.textContent = "摄像头没有在工作哦！";
+            webcamError.textContent = "摄像头没有在工作哦！请先打开摄像头。";
             return;
         }
+        if (webcam.videoWidth === 0 || webcam.videoHeight === 0) {
+            webcamError.textContent = "摄像头画面还没准备好，请稍等一下再拍照。";
+            return;
+        }
+
         photoCanvas.width = webcam.videoWidth;
         photoCanvas.height = webcam.videoHeight;
         const context = photoCanvas.getContext('2d');
@@ -348,13 +395,13 @@
 
     function retakeStudentPhoto() {
         currentStudentImage = null;
-        capturedPhotoPreview.src = "https://placehold.co/200x150/E2E8F0/94A3B8?text=我的头像"; 
-        capturedPhotoPreview.classList.remove('hidden'); 
-        webcam.classList.add('hidden'); 
-        startWebcamBtn.classList.remove('hidden'); 
-        capturePhotoBtn.disabled = true; 
-        capturePhotoBtn.classList.remove('hidden'); 
-        retakePhotoBtn.classList.add('hidden'); 
+        capturedPhotoPreview.src = "https://placehold.co/200x150/E2E8F0/94A3B8?text=我的头像";
+        // Buttons and webcam visibility will be handled by startWebcamFlow
+        webcamError.textContent = '正在准备摄像头...';
+        startWebcamBtn.classList.add('hidden');   
+        capturePhotoBtn.classList.add('hidden');  
+        capturePhotoBtn.disabled = true;
+        retakePhotoBtn.classList.add('hidden');   
         voteMessage.textContent = '';
         startWebcamFlow(); 
     }
@@ -370,7 +417,7 @@
             return;
         }
 
-        validOptions.forEach((option, index) => {
+        validOptions.forEach((option) => {
             const card = document.createElement('div');
             card.className = 'option-card p-3 rounded-lg shadow cursor-pointer text-center bg-white';
             card.dataset.optionId = option.id;
@@ -429,7 +476,7 @@
     // --- Custom Message Pop-up ---
     function showCustomMessage(message, type = 'info') {
         const msgBox = document.createElement('div');
-        let bgColor = '#e0f7fa'; // info
+        let bgColor = '#e0f7fa'; 
         let textColor = '#006064';
         if (type === 'warning') { bgColor = '#fff3cd'; textColor = '#856404'; }
         if (type === 'error') { bgColor = '#f8d7da'; textColor = '#721c24'; }
@@ -446,16 +493,6 @@
 
     // --- Page Navigation ---
     showResultsBtn.addEventListener('click', () => {
-        const finalOptions = [];
-        Array.from(optionsContainer.children).forEach(groupDiv => {
-            const id = groupDiv.dataset.id;
-            const existingOption = optionsData.find(opt => opt.id === id);
-            if (existingOption && existingOption.text.trim() !== '') { 
-                 finalOptions.push(existingOption);
-            }
-        });
-        optionsData = finalOptions; 
-
         if (optionsData.length === 0) {
             showCustomMessage("老师还没有设置任何有效的投票选项哦！", "warning");
             return;
@@ -529,9 +566,13 @@
                 webcamError.textContent = '';
                 voteMessage.textContent = '';
                 
-                optionsContainer.innerHTML = ''; 
-                addInitialOptionInputs(); 
-                updateAddOptionButtonState();
+                newOptionText.value = '';
+                newOptionImageFile.value = '';
+                newOptionImagePreview.src = "https://placehold.co/80x80/E2E8F0/94A3B8?text=预览";
+                tempImageForNewOption = null;
+                renderAddedOptionsPreview(); 
+                updateAddCurrentOptionButtonState();
+
                 renderVotingOptionsDisplay(); 
 
                 page2.classList.add('hidden');
@@ -546,7 +587,7 @@
         resultsChartContainer.innerHTML = '';
         const maxVotes = Math.max(1, ...optionsData.map(opt => opt.votes)); 
 
-        optionsData.forEach((option, index) => {
+        optionsData.forEach((option) => {
             const barWrapper = document.createElement('div');
             barWrapper.className = 'flex flex-col items-center h-full justify-end mx-1 sm:mx-2 flex-1';
             
@@ -586,7 +627,7 @@
         modalVoterImageContainer.classList.add('hidden'); 
         modalDotsContainer.classList.remove('hidden'); 
 
-        option.voters.forEach((voterImgSrc, index) => {
+        option.voters.forEach((voterImgSrc) => {
             const dot = document.createElement('div');
             dot.className = 'dot';
             dot.onclick = () => showVoterImageInModal(voterImgSrc);
@@ -613,16 +654,14 @@
     closeModalBtn.onclick = () => {
         voteDetailsModal.classList.remove('active');
     };
-
-    // Event Listeners
-    addOptionBtn.addEventListener('click', addOptionInput);
-    startWebcamBtn.addEventListener('click', startWebcamFlow);
-    capturePhotoBtn.addEventListener('click', captureStudentPhoto);
-    retakePhotoBtn.addEventListener('click', retakeStudentPhoto);
     
     // Initialize the app
     init();
-    renderVotingOptionsDisplay(); 
+
+    // Attach event listeners for webcam controls
+    startWebcamBtn.addEventListener('click', startWebcamFlow);
+    capturePhotoBtn.addEventListener('click', captureStudentPhoto);
+    retakePhotoBtn.addEventListener('click', retakeStudentPhoto);
 
 </script>
 </body>
